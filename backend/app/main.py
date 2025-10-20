@@ -1,8 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.database import engine, Base
+
+
 
 app = FastAPI(title="BayouWatch API", version="1.0.0")
 
+@app.on_event("startup")
+async def startup_event():
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database connected and tables created successfully.")
+    except Exception as e:
+        print(f"Error during database initialization: {e}")
+        
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
