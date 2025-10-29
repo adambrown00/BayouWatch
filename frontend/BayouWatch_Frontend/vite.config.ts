@@ -4,4 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  resolve: { dedupe: ["react", "react-dom"] }, // Helps to prevent duplicate ract and react-dom hook errors
+});

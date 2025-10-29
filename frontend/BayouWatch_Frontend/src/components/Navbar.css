@@ -1,0 +1,65 @@
+/* Fixed header */
+.bw-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Bar container */
+.bw-topnav {
+  height: 64px;
+  background: #003ccf;       /* Blue */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  transition: all .15s ease-in-out;
+}
+
+/* Name */
+.bw-name { 
+  color: #fff;     /* Bayou Watch */
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-decoration: none;
+  font-size: 24px;
+}
+
+/* Links */
+.bw-link {
+  color: #dbe4ff;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: inline-block;
+  transition: background .15s ease, color .15s ease;
+  outline: none;
+}
+.bw-link:hover,
+.bw-link:focus-visible {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+
+/* Active route */
+.bw-link--active {
+  background: #fff;
+  color: #0a35ff;
+}
+
+/* Group right side */
+.bw-right {
+  display: flex;
+  gap: 6px;
+}
+
+/* Keep layout nice on very small widths (desktop-only sprint, but harmless) */
+@media (max-width: 880px) {
+  .bw-right { gap: 4px; }
+  .bw-topnav { padding: 0 12px; }
+}
