@@ -1,5 +1,5 @@
 import React from "react";
-import "./Input.css";
+import "./inputField.css";
 
 type InputType = "text" | "email" | "password";
 
