@@ -26,26 +26,3 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-@app.get("/api/reports")
-def get_mock_reports():
-    return {
-        "reports": [
-            {
-                "id": 1,
-                "latitude": 30.4515,
-                "longitude": -91.1871,
-                "severity": "moderate",
-                "description": "Water rising on Highland Road near LSU",
-                "created_at": "2024-11-01T14:30:00Z"
-            },
-            {
-                "id": 2,
-                "latitude": 30.4583,
-                "longitude": -91.1403,
-                "severity": "severe",
-                "description": "Flooded intersection at College and Nicholson",
-                "created_at": "2024-11-01T15:45:00Z"
-            }
-        ]
-    }
