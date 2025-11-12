@@ -26,10 +26,10 @@ def get_reports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
                 "user_id": report.user_id,
                 "latitude": report.latitude,
                 "longitude": report.longitude,
-                "severity": report.severity,
+                "severity": report.severity.value,
                 "description": report.description,
                 "photo_url": report.photo_url,
-                "status": report.status,
+                "status": report.status.value,
                 "created_at": report.created_at.isoformat()
             }
             for report in reports
