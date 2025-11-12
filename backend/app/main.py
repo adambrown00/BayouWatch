@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app import models
+from app.routers import reports, alerts # Import the routers
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -17,6 +18,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include the routers
+app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 
 # Simple health check endpoint (Just to verify the app is running correctly)
 @app.get("/")
