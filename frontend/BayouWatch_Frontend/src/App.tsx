@@ -12,6 +12,7 @@ import Reporting from "./pages/Reporting";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Login from "./pages/Login";
+import CreateAccount from "./pages/CreateAccount";
 
 function NotFound() {
   return <div style={{ padding: 24 }}>404 — Page not found</div>;
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/create-account" element={<CreateAccount />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
