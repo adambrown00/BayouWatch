@@ -1,0 +1,33 @@
+.flood-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  width: 280px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flood-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.flood-card-row {
+  display: flex;
+  align-items: flex-start; 
+  gap: 8px;               
+}
+
+.flood-label {
+  font-weight: 600;
+  color: #333;
+}
+
+
+.flood-card h1,
+.flood-card .flood-title {
+  font-size: 16px;   
+  font-weight: 600;  
+  margin-bottom: 8px;
+}

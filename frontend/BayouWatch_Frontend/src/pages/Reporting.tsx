@@ -1,23 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import FloodReportCard from "../components/FloodReportCard";
 
-const Reporting: React.FC = () => {
-    return (
-        <main style={{ padding: "2rem", fontFamily: "Segoe UI, Roboto, -apple-system, sans-serif" }}>
-            <h1>Reporting Page</h1>
-            <p>This is a placeholder Reporting page for the BayouWatch frontend.</p>
-            <p>Replace this content following the Figma design.</p>
-            <div style={{ marginTop: "1rem" }}>
+interface FloodReport {
+  reportedBy: string;
+  date: string;
+  location: string;
+  type: string;
+  severity: string;
+}
 
-                
-                <button // Return Home button, example/can be "back" or other button
-                    onClick={() => (window.location.href = "/")} // Points to /Home
-                    style={{ padding: "0.5rem 1rem", cursor: "pointer" }}
-                >
-                    Go to Home
-                </button>
-            </div>
-        </main>
-    );
+const Reports: React.FC = () => {
+  const [reports, setReports] = useState<FloodReport[]>([]);
+
+  useEffect(() => {
+    const exampleReports: FloodReport[] = [
+      {
+        reportedBy: "Dany Damos",
+        date: "2025-10-30",
+        location: "Downtown",
+        type: "Flash Flood",
+        severity: "High",
+      },
+      {
+        reportedBy: "Baily Barker",
+        date: "2025-10-29",
+        location: "Riverbank",
+        type: "River Flood",
+        severity: "Medium",
+      },
+      {
+       
+        reportedBy: "Dina fallon",
+        date: "2025-10-29",
+        location: "Highland Road",
+        type: "Street flood",
+        severity: "Medium", 
+
+      },
+    ];
+    setReports(exampleReports);
+  }, []);
+
+  return (
+    <main
+      style={{
+        padding: "2rem",
+        fontFamily: "Segoe UI, Roboto, -apple-system, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}
+    >
+      <h1 style={{ fontSize: "1.4rem", fontWeight: "600", marginBottom: "10px" }}>
+        Flood Report List
+      </h1>
+
+      {reports.map((report, index) => (
+        <FloodReportCard key={index} {...report} />
+      ))}
+    </main>
+  );
 };
 
-export default Reporting;
+export default Reports;
