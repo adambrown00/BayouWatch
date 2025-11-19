@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import FloodReport, ReportStatus
+from app.models import FloodReport, User, ReportStatus
 from app.schemas import FloodReportCreate, FloodReportResponse
+from app.auth import get_current_user
 
 # Create a router for report-related endpoints
 router = APIRouter()
@@ -40,13 +41,15 @@ def get_reports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 @router.post("/", response_model=FloodReportResponse)
 def create_report(
     report: FloodReportCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    # TODO: Get user_id from JWT token after authentication is implemented
-    # For now a hardcoded user_id = 1 is used
+    """
+    Create a new flood report; requires authentication.
+    """
 
     db_report = FloodReport(
-        user_id=1,
+        user_id=current_user.id,
         latitude=report.latitude,
         longitude=report.longitude,
         severity=report.severity,
