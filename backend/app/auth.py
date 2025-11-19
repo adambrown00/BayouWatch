@@ -1,6 +1,6 @@
 import bcrypt
 from jose import jwt
-from datetime import datetime, timedelta,
+from datetime import datetime, timedelta
 from typing import Optional
 import os
 from dotenv import load_dotenv
@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 if SECRET_KEY == "dev-secret-key":
     print("WARNING: Using default secret key. This is insecure for production!")
-    
+
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
