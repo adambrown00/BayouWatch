@@ -8,8 +8,8 @@ router = APIRouter()
 
 @router.get("/")
 def get_reports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    
     # Get all approved flood reports from the database
-
     reports = db.query(FloodReport)\
     .filter(FloodReport.status == "approved")\
     .order_by(FloodReport.created_at.desc())\
