@@ -21,4 +21,4 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True # Allow sfor the conversion from SQLAlchemy models
+        from_attributes = True # Allows for the conversion from SQLAlchemy models

@@ -1,6 +1,6 @@
 import bcrypt
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,
 from typing import Optional
 import os
 from dotenv import load_dotenv
@@ -9,6 +9,10 @@ load_dotenv()
 
 # JWT configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+
+if SECRET_KEY == "dev-secret-key":
+    print("WARNING: Using default secret key. This is insecure for production!")
+    
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
@@ -59,10 +63,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     
     # Set expiration time
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
     # Add expiration to token data
     to_encode.update({"exp": expire})
     
