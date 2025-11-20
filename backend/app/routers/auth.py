@@ -44,7 +44,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     
     # 4) Generate the JWT token; token contains the user's email (the "subject")
     access_token = create_access_token(
-        data={"sub": user.email},
+        data={"sub": str(user.id)},
         expires_delta=timedelta(minutes=30)
     )
 
