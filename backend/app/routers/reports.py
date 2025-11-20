@@ -57,9 +57,15 @@ def create_report(
         photo_url=report.photo_url,
         status=ReportStatus.pending # New reports are listed as 'pending' by default
     )
-
-    db.add(db_report)
-    db.commit()
-    db.refresh(db_report) # Get the created report with ID
+    try:
+        db.add(db_report)
+        db.commit()
+        db.refresh(db_report) # Get the created report with ID
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating report"
+        )
 
     return db_report
