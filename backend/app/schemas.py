@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional
 from app.models import SeverityLevel, ReportStatus
@@ -23,8 +23,8 @@ class UserResponse(BaseModel):
 
 # What the frontend sends when creating a flood report
 class FloodReportCreate(BaseModel):
-    latitude: float
-    longitude: float
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
     severity: SeverityLevel
     description: Optional[str] = None
     photo_url: Optional[str] = None
