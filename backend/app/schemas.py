@@ -41,5 +41,9 @@ class FloodReportResponse(BaseModel):
     status: ReportStatus
     created_at: datetime
 
+class UserUpdate(BaseModel):
+    username: str
+    email: EmailStr
+
     class Config:
         from_attributes = True # Allows for the conversion from SQLAlchemy models
