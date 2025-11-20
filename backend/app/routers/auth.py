@@ -59,7 +59,8 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user account
-    No authentication required"""
+    No authentication required
+    """
 
     # Check if email is already in use
     existing_user = db.query(User).filter(User.email == user_data.email).first()
@@ -70,7 +71,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         )
     
     # Check if username is already in use
-    existing_user = db.query(User).filter(User.username == user_data.username).first
+    existing_user = db.query(User).filter(User.username == user_data.username).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -87,6 +88,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password
     )
 
+    # Add the new user to the database
     db.add(new_user)
     db.commit()
     db.refresh(new_user)  
