@@ -113,6 +113,6 @@ def get_current_user(
         
         return user
     
-    except JWTError:
+    except (JWTError, ValueError, TypeError):
         raise credentials_exception
                              
