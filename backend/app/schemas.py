@@ -45,5 +45,10 @@ class UserUpdate(BaseModel):
     username: str
     email: EmailStr
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str
+    password: str
+
     class Config:
         from_attributes = True # Allows for the conversion from SQLAlchemy models
