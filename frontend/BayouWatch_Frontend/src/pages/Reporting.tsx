@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-
 export default function Reporting() {
     const [formData, setFormData] = useState({});
 
