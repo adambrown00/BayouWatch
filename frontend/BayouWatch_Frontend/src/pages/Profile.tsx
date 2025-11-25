@@ -1,274 +1,430 @@
-import React, { useMemo } from "react";     // React and useMemo
-import { theme} from "../Theme"             // Theme for styling
-import { Link } from "react-router-dom";    // Navigation Links
+// src/pages/Profile.tsx
+// Profile page for BayouWatch user accounts.
+// Shows user info, simple stats, recent reports, and account settings.
+// Currently uses mock data; backend integration can plug in later.
 
+import React, { useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom"; // navigation + routing
+import "./Profile.css";                              // page-specific styles
+import { useAuth } from "../context/AuthContext";    // frontend auth state
 
-// Profile Page with View/Edit Modes
+// UI mode: either viewing profile or editing it
 type Mode = "view" | "edit";
 
-// User Data Struct, can be expanded later
+// Which panel is active in the main content area
+type ProfileSection = "info" | "stats" | "reports" | "settings";
+
+// Basic user shape the profile page understands.
+// Can be expanded later as backend adds more fields.
 interface User {
-
-    username: string;
-    email: string;
-    accountCreated: string;
-    userID: number; // User ID for real data fetching later
-
+  username: string;
+  email: string;
+  accountCreated: string;
+  userID: number;
 }
 
-// Mock User Data for now, real data fetching implemented later
-// Changes made in edit mode updates the mock data in memory, no persistence
-// when switching between pages or refreshing
+// Mock user data for now.
+// In a real app, this would come from an API or auth token.
 const mockUser: User = {
-    username: "Username",
-    email: "emailname@email.com",
-    accountCreated: "2023-01-17T12:00:00", // formatted YYYY-MM-DDTHH:MM:SS
-    userID: 1,
+  username: "Username",
+  email: "email@mail.com",
+  accountCreated: "2025-11-17T12:00:00",
+  userID: 1,
 };
 
+// Mock statistics for the "User Statistics" section
+const mockStats = {
+  totalReports: 7,
+  severeReports: 2,
+  moderateReports: 3,
+  minorReports: 2,
+};
 
+// Mock recent reports list for the "Saved Reports" section
+const mockRecentReports = [
+  { id: 1, date: "2025-11-20", location: "Choctaw Dr.", severity: "Severe" },
+  { id: 2, date: "2025-11-19", location: "Perkins Rd.", severity: "Moderate" },
+  { id: 3, date: "2025-11-18", location: "Nicholson Dr.", severity: "Minor" },
+];
 
-// Main Profile Component
+// Main Profile component
 export default function Profile() {
+  const navigate = useNavigate();
+  const { logout } = useAuth(); // from AuthContext: flips logged-in state
 
-    // Stored User Data. Holds the current user info known at by frontend at the time
-    // In final app, data would come from backend 
-    const [user, setUser] = React.useState<User>(mockUser);
+  // Current user information (mocked for now)
+  const [user, setUser] = React.useState<User>(mockUser);
 
-    // UI mode. Controls whether viewing or editing profile
-    const [mode, setMode] = React.useState<Mode>("view");
+  // Whether we're in "view" or "edit" mode inside the User Information tab
+  const [mode, setMode] = React.useState<Mode>("view");
 
-    // Edit form state. Copies user data into a temp form
-    // When saved is clicked, the changes are committed 
-    const [form , setForm] = React.useState({
-        username: user.username,
-        email: user.email,
+  // Which left-hand navigation section is currently selected
+  const [section, setSection] = React.useState<ProfileSection>("info");
+
+  // Controls visibility of the logout confirmation modal
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+
+  // Local edit form state (only used in edit mode)
+  const [form, setForm] = React.useState({
+    username: user.username,
+    email: user.email,
+  });
+
+  // Basic client-side validation for edit form
+  const errors = useMemo(() => {
+    const e: Partial<Record<keyof typeof form, string>> = {};
+
+    if (!form.username.trim() || form.username.trim().length < 3) {
+      e.username = "Username must be at least 3 characters long.";
+    }
+
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      e.email = "Invalid email address.";
+    }
+
+    return e;
+  }, [form]);
+
+  const hasErrors = Object.keys(errors).length > 0;
+
+  // Switch to edit mode and preload form with current user data
+  function startEdit() {
+    setForm({
+      username: user.username,
+      email: user.email,
     });
+    setMode("edit");
+    setSection("info"); // stay on the info tab while editing
+  }
 
-    // Simple Validation. Checks for basic errors in editing form fields
-    const errors = useMemo(() => {
-        const e: Partial<Record<keyof typeof form, string>> = {};
+  // Exit edit mode without saving changes
+  function cancelEdit() {
+    setMode("view");
+  }
 
-        // Username Length Check
-        if (!form.username.trim() || form.username.trim().length < 3) {
-            e.username = "Username must be at least 3 characters long.";
-        }
+  // Commit changes from form into the user state (no persistence yet)
+  function saveEdit() {
+    const updated = {
+      ...user,
+      username: form.username.trim(),
+      email: form.email.trim(),
+    };
+    console.log("Saving user data:", updated);
+    setUser(updated);
+    setMode("view");
+  }
 
-        // Email Format Check
-        if (!/\S+@\S+\.\S+/.test(form.email)) {
-            e.email = "Invalid email address.";
-        }
+  // Called when the user confirms logout in the modal
+  function handleConfirmLogout() {
+    logout();               // flip auth state in context
+    setShowLogoutModal(false);
+    navigate("/login");     // redirect back to login page
+  }
 
-        return e;
-    }, [form]); // Runs this validation when any edit form value changes 
+  // Format account creation date to a friendly string (e.g. 1/17/2023)
+  const createdDate = useMemo(
+    () => new Date(user.accountCreated).toLocaleDateString(),
+    [user.accountCreated]
+  );
 
-    const hasErrors = Object.keys(errors).length > 0;
+  // ========================= RENDER =========================
+  return (
+    <div className="profile-page">
+      <h1 className="profile-title">Profile Management</h1>
 
-    // Handlers
+      {/* friendly greeting under the title */}
+      <p className="profile-subtitle">
+        Signed in as <span className="profile-username">{user.username}, Welcome!</span>
+      </p>
 
-    // Switch to edit mode, fill form with current user data
-    function startEdit() {
-        setForm({
-            username: user.username,
-            email: user.email,
-        });
-        setMode("edit");
-    }
-
-    // Cancel editing, discard changes
-    function cancelEdit() {
-        setMode("view");
-    }
-
-    // Save changes, update user data
-    // For now, updates the local state, no persistence again
-    // The result is logged to console. Inspect -> console to see
-    function saveEdit() {
-        const updated = {...user, username: form.username.trim(), email: form.email.trim()};
-        console.log("Saving user data:", updated);
-        setUser(updated);
-        setMode("view");
-    }
-
-    // Formatting 
-
-    // Formats account creation date to M/D/YYYY
-    const createdDate = useMemo(
-        () => new Date(user.accountCreated).toLocaleDateString(),
-        [user.accountCreated]
-    )
-
-    // Renders the Profile Page, showing either view or edit mode with Save/Cancel buttons 
-      return (
-        <div
-        style={{
-            maxWidth: 880,
-            margin: "0 auto",
-            padding: theme.spacing.large,
-        }}
-        >
-            <h1
-                style={{
-                fontSize: 28,
-                fontWeight: 700,
-                marginBottom: parseInt(theme.spacing.medium),
-                color: theme.colors.text,
-                }}
+      {/* Main two-column card: sidebar on the left, content panel on the right */}
+      <section className="profile-card">
+        {/* ===== LEFT SIDEBAR ===== */}
+        <aside className="profile-sidebar">
+          <div className="profile-sidebar-section">
+            <button
+              className={
+                "profile-nav-button" +
+                (section === "info" ? " profile-nav-button--active" : "")
+              }
+              onClick={() => setSection("info")}
             >
-                Profile Management
-            </h1>
+              User Information
+            </button>
 
-            <section
-                style={{
-                background: theme.colors.background,
-                border: "1px solid rgba(0,0,0,0.08)", 
-                borderRadius: theme.borderRadius.large,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
-                padding: theme.spacing.large,
-                }}
+            <button
+              className={
+                "profile-nav-button" +
+                (section === "stats" ? " profile-nav-button--active" : "")
+              }
+              onClick={() => setSection("stats")}
             >
-        {mode === "view" ? (
+              User Statistics
+            </button>
+
+            <button
+              className={
+                "profile-nav-button" +
+                (section === "reports" ? " profile-nav-button--active" : "")
+              }
+              onClick={() => setSection("reports")}
+            >
+              Saved Reports
+            </button>
+
+            <button
+              className={
+                "profile-nav-button" +
+                (section === "settings" ? " profile-nav-button--active" : "")
+              }
+              onClick={() => setSection("settings")}
+            >
+              Account Settings
+            </button>
+          </div>
+        </aside>
+
+        {/* ===== MAIN PANEL ===== */}
+        <main className="profile-main">
+          {/* --- User Information (view / edit) --- */}
+          {section === "info" && (
+            <>
+              {mode === "view" ? (
+                // Read-only view of user information
+                <div>
+                  <div className="profile-field">
+                    <div className="profile-field-label">Username</div>
+                    <div className="profile-field-value">{user.username}</div>
+                  </div>
+
+                  <div className="profile-field">
+                    <div className="profile-field-label">Email</div>
+                    <div className="profile-field-value">{user.email}</div>
+                  </div>
+
+                  <div className="profile-field profile-field--spaced">
+                    <div className="profile-field-label">Account Created</div>
+                    <div className="profile-field-value">{createdDate}</div>
+                  </div>
+
+                  <button
+                    onClick={startEdit}
+                    className="profile-button-primary"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+              ) : (
+                // Editable form version of the user info
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!hasErrors) saveEdit();
+                  }}
+                >
+                  <div className="profile-form-grid">
+                    <label className="profile-label">
+                      <span>Username</span>
+                      <input
+                        type="text"
+                        value={form.username}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, username: e.target.value }))
+                        }
+                        className={
+                          "profile-input" +
+                          (errors.username ? " profile-input--error" : "")
+                        }
+                      />
+                      {errors.username && (
+                        <small className="profile-error">
+                          {errors.username}
+                        </small>
+                      )}
+                    </label>
+
+                    <label className="profile-label">
+                      <span>Email</span>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, email: e.target.value }))
+                        }
+                        className={
+                          "profile-input" +
+                          (errors.email ? " profile-input--error" : "")
+                        }
+                      />
+                      {errors.email && (
+                        <small className="profile-error">
+                          {errors.email}
+                        </small>
+                      )}
+                    </label>
+                  </div>
+
+                  <div className="profile-actions">
+                    <button
+                      type="submit"
+                      disabled={hasErrors}
+                      className="profile-button-primary"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="profile-button-ghost"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+            </>
+          )}
+
+          {/* --- User Statistics (mock data) --- */}
+          {section === "stats" && (
             <div>
-                <div style={{ marginBottom: 10 }}>
-                <div style={{ color: theme.colors.secondary, fontSize: 12 }}>Username</div>
-                <div style={{ fontSize: 16, color: theme.colors.text }}>{user.username}</div>
-                </div>
+              <h2 className="profile-section-heading">User Statistics</h2>
+              <p className="profile-section-subtext">
+                Overview of your recent reporting activity in BayouWatch.
+              </p>
 
-                <div style={{ marginBottom: 10 }}>
-                <div style={{ color: theme.colors.secondary, fontSize: 12 }}>Email</div>
-                <div style={{ fontSize: 16, color: theme.colors.text }}>{user.email}</div>
+              <div className="profile-stat-grid">
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Total Reports</div>
+                  <div className="profile-stat-value">
+                    {mockStats.totalReports}
+                  </div>
                 </div>
-
-                <div style={{ marginBottom: 20 }}>
-                <div style={{ color: theme.colors.secondary, fontSize: 12 }}>Account Created</div>
-                <div style={{ fontSize: 16, color: theme.colors.text }}>{createdDate}</div>
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Severe Floods</div>
+                  <div className="profile-stat-value">
+                    {mockStats.severeReports}
+                  </div>
                 </div>
-
-                <button
-                onClick={startEdit}
-                style={buttonPrimary}
-                >
-                Edit Profile
-                </button>
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Moderate Floods</div>
+                  <div className="profile-stat-value">
+                    {mockStats.moderateReports}
+                  </div>
+                </div>
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Minor Floods</div>
+                  <div className="profile-stat-value">
+                    {mockStats.minorReports}
+                  </div>
+                </div>
+              </div>
             </div>
-            ) : (
-            <form
-                onSubmit={(e) => {
-                e.preventDefault();
-                if (!hasErrors) saveEdit();
-                }}
-            >
-                <div style={{ display: "grid", gap: 12, marginBottom: 16 }}>
-                <label style={labelStyle}>
-                    <span>Username</span>
-                    <input
-                    type="text"
-                    value={form.username}
-                    onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-                    style={inputStyle(errors.username)}
-                    />
-                    {errors.username && <small style={errorStyle}>{errors.username}</small>}
-                </label>
+          )}
 
-                <label style={labelStyle}>
-                    <span>Email</span>
-                    <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    style={inputStyle(errors.email)}
-                    />
-                    {errors.email && <small style={errorStyle}>{errors.email}</small>}
-                </label>
+          {/* --- Saved / Recent Reports (mock list) --- */}
+          {section === "reports" && (
+            <div>
+              <h2 className="profile-section-heading">Your Recent Reports</h2>
+              <p className="profile-section-subtext">
+                These are a few of the latest flood reports associated with your
+                account.
+              </p>
+
+              <ul className="profile-list">
+                {mockRecentReports.map((r) => {
+                  // Normalize severity to match our CSS modifiers
+                  const severityKey = r.severity.toLowerCase(); // "severe" | "moderate" | "minor"
+
+                  const severityClass =
+                    severityKey === "severe"
+                      ? "profile-list-severity profile-list-severity--severe"
+                      : severityKey === "moderate"
+                      ? "profile-list-severity profile-list-severity--moderate"
+                      : "profile-list-severity profile-list-severity--minor";
+
+                  return (
+                    <li key={r.id} className="profile-list-item">
+                      <div className="profile-list-title">
+                        {r.location} &mdash;{" "}
+                        <span className={severityClass}>{r.severity}</span>
+                      </div>
+                      <div className="profile-list-meta">Reported on {r.date}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* --- Account Settings + Logout button --- */}
+          {section === "settings" && (
+            <div>
+              <h2 className="profile-section-heading">Account Settings</h2>
+              <p className="profile-section-subtext">
+                Manage how BayouWatch interacts with your account. These are
+                placeholders until backend integration is added.
+              </p>
+
+              {/* Static rows for now; could become toggles later */}
+              <div className="profile-settings-list">
+                <div className="profile-settings-row">
+                  <span>Notification Emails</span>
+                  <span className="profile-settings-pill">Enabled</span>
                 </div>
+                <div className="profile-settings-row">
+                  <span>Two-Factor Authentication</span>
+                  <span className="profile-settings-pill">Not configured</span>
+                </div>
+                <div className="profile-settings-row">
+                  <span>Location Services</span>
+                  <span className="profile-settings-pill">
+                    Using browser defaults
+                  </span>
+                </div>
+              </div>
 
-                <div style={{ display: "flex", gap: 8 }}>
+              {/* Logout action opens confirmation modal */}
+              <div className="profile-settings-logout">
                 <button
-                    type="submit"
-                    disabled={hasErrors}
-                    style={{ ...buttonPrimary, opacity: hasErrors ? 0.7 : 1, cursor: hasErrors ? "not-allowed" : "pointer" }}
+                  className="profile-button-danger"
+                  onClick={() => setShowLogoutModal(true)}
                 >
-                    Save
+                  Log out
                 </button>
-                <button type="button" onClick={cancelEdit} style={buttonGhost}>
-                    Cancel
-                </button>
-                </div>
-            </form>
-        )}
+              </div>
+            </div>
+          )}
+        </main>
       </section>
 
-    
-        {/* Home Button */}
-        <div style={{ marginTop: parseInt(theme.spacing.medium) }}>
-            <Link to="/" style={{ textDecoration: "none" }}>
-                <button style={buttonHome}>Go to Home</button>
-            </Link>
+      {/* Logout confirmation modal overlay */}
+      {showLogoutModal && (
+        <div className="profile-modal-backdrop">
+          <div className="profile-modal">
+            <h3 className="profile-modal-title">Log out of BayouWatch?</h3>
+            <p className="profile-modal-text">
+              You&apos;ll be returned to the login page. You can sign back in
+              anytime with your account credentials.
+            </p>
+
+            <div className="profile-modal-actions">
+              <button
+                className="profile-button-danger"
+                onClick={handleConfirmLogout}
+              >
+                Log out
+              </button>
+              <button
+                className="profile-button-ghost"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
+      )}
     </div>
   );
 }
-
-
-
-// Style Objects
-// Used inline for simplicity, can be moved to CSS/SCSS files later
-
-// Label style for input fields and style for error messages
-const labelStyle: React.CSSProperties = { 
-    display: "grid",
-    gap: theme.spacing.small,
-    fontSize: 14,
- };
-const errorStyle: React.CSSProperties = { 
-    color: theme.colors.danger,
-    marginTop: 2,    
-};
-
-// Dynamic input style based on error presence
-// Red border for error, gray otherwise
-function inputStyle(hasError?: string): React.CSSProperties {
-  return {
-    height: 40,
-    padding: `0 ${theme.spacing.medium}`,
-    borderRadius: theme.borderRadius.medium,
-    border: `1px solid ${
-      hasError ? theme.colors.danger : "rgba(0,0,0,0.15)"
-    }`,
-    outline: "none",
-    color: theme.colors.text,
-  };
-}
-
-// Button styles for primary buttons
-const buttonPrimary: React.CSSProperties = {
-  background: theme.colors.primary,
-  color: theme.colors.background,
-  border: "none",
-  borderRadius: theme.borderRadius.medium,
-  padding: `${theme.spacing.small} ${theme.spacing.medium}`,
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-// Button styles for secondary buttons
-const buttonGhost: React.CSSProperties = {
-  background: theme.colors.surface,
-  color: theme.colors.text,
-  border: `1px solid rgba(0,0,0,0.12)`,
-  borderRadius: theme.borderRadius.medium,
-  padding: `${theme.spacing.small} ${theme.spacing.medium}`,
-  fontWeight: 600,
-  cursor: "pointer",
-
-};
-
-const buttonHome: React.CSSProperties = {
-  background: theme.colors.surface,
-  color: theme.colors.text,
-  border: `1px solid rgba(0,0,0,0.12)`,
-  borderRadius: theme.borderRadius.small,
-  padding: `${theme.spacing.small} ${theme.spacing.medium}`,
-  fontSize: 14,
-  cursor: "pointer",
-};
