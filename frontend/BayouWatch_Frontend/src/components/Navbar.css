@@ -1,65 +1,99 @@
-/* Fixed header */
 .bw-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  background: linear-gradient(90deg, #003ccf 0%, #006aff 100%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Bar container */
 .bw-topnav {
-  height: 64px;
-  background: #003ccf;       /* Blue */
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 0 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  transition: all .15s ease-in-out;
+  padding: 0 28px;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Name */
-.bw-name { 
-  color: #fff;     /* Bayou Watch */
-  font-weight: 700;
-  letter-spacing: 0.4px;
+.bw-name {
+  color: #fff;
+  font-weight: 800;
   text-decoration: none;
-  font-size: 24px;
+  font-size: 26px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: color 0.2s ease;
 }
 
-/* Links */
+.bw-name:hover {
+  color: #e8f0ff;
+}
+
 .bw-link {
+  position: relative;
   color: #dbe4ff;
   text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
   font-weight: 500;
+  font-size: 16px;
   display: inline-block;
-  transition: background .15s ease, color .15s ease;
-  outline: none;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
+
 .bw-link:hover,
 .bw-link:focus-visible {
-  background: rgba(255,255,255,.15);
   color: #fff;
+  transform: translateY(-1px);
 }
 
-/* Active route */
-.bw-link--active {
+.bw-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 0%;
+  height: 2px;
   background: #fff;
-  color: #0a35ff;
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+  border-radius: 2px;
 }
 
-/* Group right side */
+.bw-link:hover::after,
+.bw-link:focus-visible::after {
+  width: 60%;
+}
+
+.bw-link--active {
+  color: #fff;
+  font-weight: 600;
+}
+
+.bw-link--active::after {
+  width: 60%;
+  background: #fff;
+}
+
 .bw-right {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Keep layout nice on very small widths (desktop-only sprint, but harmless) */
 @media (max-width: 880px) {
-  .bw-right { gap: 4px; }
-  .bw-topnav { padding: 0 12px; }
+  .bw-topnav {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 16px;
+  }
+
+  .bw-right {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
 }

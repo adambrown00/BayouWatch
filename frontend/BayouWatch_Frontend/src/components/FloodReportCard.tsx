@@ -1,6 +1,12 @@
 import React from "react";
 import "./FloodReportCard.css";
-import { FaUser, FaCalendar, FaMapMarkerAlt, FaWater, FaExclamationTriangle } from "react-icons/fa";
+import {
+  FaUser,
+  FaCalendar,
+  FaMapMarkerAlt,
+  FaWater,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 interface FloodReportCardProps {
   reportedBy: string;
@@ -8,6 +14,7 @@ interface FloodReportCardProps {
   location: string;
   type: string;
   severity: string;
+  description: string;
 }
 
 const FloodReportCard: React.FC<FloodReportCardProps> = ({
@@ -16,6 +23,7 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
   location,
   type,
   severity,
+  description,
 }) => {
   return (
     <div className="flood-card">
@@ -43,6 +51,10 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
         <FaExclamationTriangle size={16} color="#007bff" />
         <span className="flood-label">Severity:</span>
         <span>{severity}</span>
+      </div>
+      <div className="flood-card-row description-row">
+        <span className="flood-label">Description:</span>
+        <span>{description}</span>
       </div>
     </div>
   );
