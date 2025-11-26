@@ -17,6 +17,9 @@ import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
+import { injectThemeCSSVars } from "./pages/Theme";
+
+injectThemeCSSVars();
 
 function NotFound() {
   return <div style={{ padding: 24 }}>404 — Page not found</div>;

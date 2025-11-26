@@ -3,7 +3,7 @@ import { Marker, Popup } from "react-leaflet";
 import { DivIcon } from "leaflet";
 
 
-type Severity = 'minor' | 'moderate' | 'severe';
+export type Severity = 'minor' | 'moderate' | 'severe';
 
 interface FloodMarkerProps {
     latitude: number;
