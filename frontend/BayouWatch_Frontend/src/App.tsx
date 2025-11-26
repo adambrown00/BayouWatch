@@ -15,6 +15,8 @@ import Reporting from "./pages/Reporting";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+
 import { injectThemeCSSVars } from "./pages/Theme";
 
 injectThemeCSSVars();
@@ -37,6 +39,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/register" element={<Register />} />
           </Route>
         </Routes>
       </BrowserRouter>

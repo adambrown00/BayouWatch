@@ -97,3 +97,19 @@
     margin-top: 8px;
   }
 }
+
+  .bw-right-main {
+    display: flex;
+    align-items: center;
+    gap: 1em; /* padding between buttons */
+  }
+
+  .bw-right-auth {
+    margin-left: 1.5rem; /* padding for Login/profile button */
+  }
+
+  .bw-link--auth {
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
