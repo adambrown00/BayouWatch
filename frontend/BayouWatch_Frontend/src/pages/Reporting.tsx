@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-
 export default function Reporting() {
     const [formData, setFormData] = useState({});
 
@@ -62,9 +61,15 @@ export default function Reporting() {
 
     <button className="p-3 bg-blue-600 text-white rounded w-full font-semibold">Submit Report</button>
 
-
+      
     <button className="p-2 border rounded w-full mt-4">Go to Home</button>
+        {/*}
+        Tailwind Sanity Test
+        <div className="p-4 bg-slate-800 text-3xl text-red-500">
+          Tailwind is working?
+        </div>
+        */}
   </div>
+  
 );
 }
-
