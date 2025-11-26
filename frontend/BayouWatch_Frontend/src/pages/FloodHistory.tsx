@@ -1,76 +1,143 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import FloodReportCard from "../components/FloodReportCard";
-import "./FloodHistory.css";
+import HistoryMap from "../components/HistoryMap";
+import type { HistoryMapReport } from "../components/HistoryMap";
+import "./FloodHistory.css"; // Page stylings
 
-// Mock data
-const mockReports = [
+// Defined severity types
+type Severity = "severe" | "moderate" | "minor";
+
+// Extended report type with additional fields
+interface FloodReport extends HistoryMapReport {
+  reportedBy: string;
+  date: string;
+  location: string;
+  type: string;
+}
+
+// Mock flood reports data, to be replaced through database integration
+const mockReports: FloodReport[] = [
   {
+    id: 1,
     reportedBy: "Alice",
-    date: "2025-11-10",
-    location: "Bayou St. John",
+    date: "2025-11-20",
+    location: "Choctaw Dr.",
     type: "Street Flood",
-    severity: "High",
-    description: "Flooded streets after heavy rain",
+    severity: "severe",
+    description: "Heavily flooded streets after heavy rain",
+    latitude: 30.470875,
+    longitude: -91.131796,
   },
   {
+    id: 2,
     reportedBy: "Bob",
-    date: "2025-11-11",
-    location: "French Quarter",
+    date: "2025-11-20",
+    location: "Perkins Rd.",
     type: "Localized Flood",
-    severity: "Medium",
-    description: "Minor street flooding in front of houses",
+    severity: "moderate",
+    description: "Moderate street flooding on busy roadway",
+    latitude: 30.420964,
+    longitude: -91.152794,
   },
   {
+    id: 3,
     reportedBy: "Charlie",
-    date: "2025-11-12",
-    location: "Lakeview",
+    date: "2025-11-24",
+    location: "Terrace Ave.",
     type: "Water Near Curb",
-    severity: "Low",
+    severity: "minor",
     description: "Water reaching the sidewalk but no road closure",
+    latitude: 30.436279,
+    longitude: -91.182348,
   },
   {
+    id: 4,
     reportedBy: "Dana",
-    date: "2025-11-13",
-    location: "Mid-City",
+    date: "2025-11-20",
+    location: "Nicholson Dr.",
     type: "Road Closure",
-    severity: "High",
+    severity: "severe",
     description: "Major roads closed due to flooding",
+    latitude: 30.404385,
+    longitude: -91.183482,
   },
   {
+    id: 5,
     reportedBy: "Eve",
-    date: "2025-11-14",
-    location: "Bywater",
+    date: "2025-11-23",
+    location: "E McKinley St.",
     type: "Localized Flood",
-    severity: "Medium",
-    description: "Localized flooding near parks and streets",
+    severity: "moderate",
+    description: "Localized flooding near streets and residences",
+    latitude: 30.423661,
+    longitude: -91.175389,
   },
 ];
 
+// Main Flood History page component
 export default function FloodHistory() {
   const navigate = useNavigate();
+  const [selectedReport, setSelectedReport] = React.useState<FloodReport | null>(
+    null
+  );
 
   return (
-    <div className="flood-history-page">
-      <div className="top-bar">
-        <h1>Flood History</h1>
-        <button onClick={() => navigate("/reporting")}>
-          Create Report
+    <div className="history-container">
+      {/* Title */}
+      <div className="history-header">
+        <h1 className="history-title">Flood History (Past 7 Days)</h1>
+
+        <button
+          className="history-report-button"
+          onClick={() => navigate("/reporting")}
+        >
+          Report New Flood
         </button>
       </div>
 
-      <div className="reports-grid">
-        {mockReports.map((report, idx) => (
-          <FloodReportCard
-            key={idx}
-            reportedBy={report.reportedBy}
-            date={report.date}
-            location={report.location}
-            type={report.type}
-            severity={report.severity}
-            description={report.description}
-          />
-        ))}
+      {/* Subtitle */}
+      <p className="history-subtitle">
+        See the latest flood activity around Baton Rouge. Click any report to
+        highlight it on the map.
+      </p>
+
+      {/* Content grid */}
+      <div className="history-grid">
+        {/* Left column */}
+        <div className="history-list">
+          {mockReports.length === 0 ? (
+            <p className="no-reports">No recent reports.</p>
+          ) : (
+            mockReports.map((r) => (
+              <div
+                key={r.id}
+                className="history-clickable-card"
+                onClick={() => setSelectedReport(r)}
+              >
+                <FloodReportCard
+                  reportedBy={r.reportedBy}
+                  date={r.date}
+                  location={r.location}
+                  type={r.type}
+                  severity={r.severity as Severity}
+                  description={r.description}
+                />
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Right column */}
+        <div className="history-map-panel">
+          {selectedReport ? (
+            <HistoryMap selectedReport={selectedReport} />
+          ) : (
+            <div className="history-map-placeholder">
+              🗺️ Click a report to view its location on the map
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

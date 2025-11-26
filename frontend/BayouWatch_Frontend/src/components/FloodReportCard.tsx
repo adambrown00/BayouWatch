@@ -8,12 +8,15 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 
+// Defined severity types
+export type Severity = "severe" | "moderate" | "minor";
+
 interface FloodReportCardProps {
   reportedBy: string;
   date: string;
   location: string;
   type: string;
-  severity: string;
+  severity: Severity;
   description: string;
 }
 
@@ -25,8 +28,23 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
   severity,
   description,
 }) => {
+
+  // Define colors for severity levels
+  const severityColors = {
+    severe: "#dc2626",   // red
+    moderate: "#f59e0b", // orange
+    minor: "#eab308",    // yellow
+  };
+
+  const sevColor = severityColors[severity];
+  
   return (
-    <div className="flood-card">
+    <div
+      className="flood-card"
+      style={{
+        borderLeft: `6px solid ${sevColor}`,
+      }}
+    >
       <div className="flood-card-row">
         <FaUser size={16} color="#007bff" />
         <span className="flood-label">Reported by:</span>
