@@ -31,9 +31,9 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
 
   // Define colors for severity levels
   const severityColors = {
-    severe: "#dc2626",   // red
-    moderate: "#f59e0b", // orange
-    minor: "#eab308",    // yellow
+    severe: "red",   // red
+    moderate: "orange", // orange
+    minor: "green",    // green
   };
 
   const sevColor = severityColors[severity];
