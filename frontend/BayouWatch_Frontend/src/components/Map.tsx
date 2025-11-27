@@ -4,10 +4,11 @@
 //import "./app.css";
 import { useEffect, useState } from 'react';
 import 'leaflet'
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import MapMarker from './MapMarker';
 import MapCluster from './MarkerClusterGroup';
+import { useNavigate } from 'react-router-dom';
 
 export interface MapMarkerData {
     latitude: number;
@@ -16,6 +17,28 @@ export interface MapMarkerData {
     description: string;
 }
 
+// Map Clicker component to handle map clicks for reports
+function MapClickHandler() {
+    const navigate = useNavigate();
+
+    useMapEvents({
+        click: (e) => {
+            const { lat, lng } = e.latlng;
+
+            // Ask user to confirm they want to report at this location
+            const confirm = window.confirm(
+                `Report flooding at this location?\n\nCoordinates: (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+            );
+
+            if (confirm)
+                // Navigate to reporting page with lat/lng in state
+                navigate(`/reporting?lat=${lat}&lng=${lng}`);
+            
+        }
+    });
+
+    return null; // This component does not render anything visible to user
+}
 export default function Map() {
     const [markers, setMarkers] = useState<MapMarkerData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,6 +93,9 @@ export default function Map() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             />
+
+            <MapClickHandler />
+
             {markers.map((marker: MapMarkerData, index: number) => (
                 <MapMarker
                     key={index}
