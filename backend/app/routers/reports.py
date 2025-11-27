@@ -55,7 +55,7 @@ def create_report(
         severity=report.severity,
         description=report.description,
         photo_url=report.photo_url,
-        status=ReportStatus.pending # New reports are listed as 'pending' by default
+        status=ReportStatus.approved # New reports are listed as 'approved' by default (can add admin role later)
     )
     try:
         db.add(db_report)
