@@ -7,15 +7,50 @@ import { FaUser, FaLock } from "react-icons/fa"; // icons for inputs
 export default function Login() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: hook up to backend later
-    console.log("Login attempt:", { email, password });
-    login();
-    navigate("/profile");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid email or password')
+      }
+
+      const data = await response.json();
+
+      // Save token to the local storage
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(data.user))
+
+      // Call login function from AuthContext
+      login();
+
+      // Redirect to home page instead of profile
+      navigate("/");
+
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -24,6 +59,12 @@ export default function Login() {
         <h1 style={title}>Login</h1>
         <div style={titleUnderline} />
         <p style={subtitle}>Please sign in or register a new account</p>
+
+        {error && (
+          <div style={errorBanner}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={form}>
           <label style={label}>
@@ -58,8 +99,8 @@ export default function Login() {
             </div>
           </label>
 
-          <button type="submit" style={primaryButton}>
-            Login
+          <button type="submit" style={primaryButton} disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -188,3 +229,13 @@ const subtitle: React.CSSProperties = {
   lineHeight: 1.4,
 };
 
+const errorBanner: React.CSSProperties = {
+  padding: theme.spacing.small,
+  marginBottom: theme.spacing.medium,
+  backgroundColor: '#fee',
+  border: '1px solid ' + theme.colors.danger,
+  borderRadius: theme.borderRadius.medium,
+  color: theme.colors.danger,
+  fontSize: 14,
+  textAlign: 'center',
+};

@@ -3,7 +3,7 @@
 // Shows user info, simple stats, recent reports, and account settings.
 // Currently uses mock data; backend integration can plug in later.
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // navigation + routing
 import "./Profile.css";                              // page-specific styles
 import { useAuth } from "../context/AuthContext";    // frontend auth state
@@ -23,16 +23,15 @@ interface User {
   userID: number;
 }
 
-// Mock user data for now.
-// In a real app, this would come from an API or auth token.
-const mockUser: User = {
-  username: "Username",
-  email: "email@mail.com",
-  accountCreated: "2025-11-17T12:00:00",
-  userID: 1,
-};
+// Kept other user profile management mock data for now
+interface User {
+  username: string;
+  email: string;
+  accountCreated: string;
+  userID: number;
+}
 
-// Mock statistics for the "User Statistics" section
+// Add these mock data objects here:
 const mockStats = {
   totalReports: 7,
   severeReports: 2,
@@ -40,7 +39,6 @@ const mockStats = {
   minorReports: 2,
 };
 
-// Mock recent reports list for the "Saved Reports" section
 const mockRecentReports = [
   { id: 1, date: "2025-11-20", location: "Choctaw Dr.", severity: "Severe" },
   { id: 2, date: "2025-11-19", location: "Perkins Rd.", severity: "Moderate" },
@@ -53,8 +51,9 @@ export default function Profile() {
   const { logout } = useAuth(); // from AuthContext: flips logged-in state
 
   // Current user information (mocked for now)
-  const [user, setUser] = React.useState<User>(mockUser);
-
+  const [user, setUser] = React.useState<User | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   // Whether we're in "view" or "edit" mode inside the User Information tab
   const [mode, setMode] = React.useState<Mode>("view");
 
@@ -66,9 +65,45 @@ export default function Profile() {
 
   // Local edit form state (only used in edit mode)
   const [form, setForm] = React.useState({
-    username: user.username,
-    email: user.email,
+    username: "",
+    email: "",
   });
+
+  // Fetch user data on the component mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    fetch('http://localhost:8000/api/users/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      return res.json();
+    })
+    .then(data => {
+      setUser({
+        username: data.username,
+        email: data.email,
+        accountCreated: data.created_at,
+        userID: data.id,
+      });
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Error fetching user:', err);
+      setError("Failed to load user data.");
+      setLoading(false);
+    });
+  }, [navigate]);
 
   // Basic client-side validation for edit form
   const errors = useMemo(() => {
@@ -89,6 +124,7 @@ export default function Profile() {
 
   // Switch to edit mode and preload form with current user data
   function startEdit() {
+    if (!user) return;
     setForm({
       username: user.username,
       email: user.email,
@@ -103,19 +139,51 @@ export default function Profile() {
   }
 
   // Commit changes from form into the user state (no persistence yet)
-  function saveEdit() {
-    const updated = {
-      ...user,
-      username: form.username.trim(),
-      email: form.email.trim(),
-    };
-    console.log("Saving user data:", updated);
-    setUser(updated);
-    setMode("view");
+  async function saveEdit() {
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('http://localhost:8000/api/users/me', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          username: form.username.trim(),
+          email: form.email.trim()
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update profile');
+        }
+
+      const data = await response.json();
+
+      // Update local user state with new data
+      setUser({
+        username: data.username,
+        email: data.email,
+        accountCreated: data.created_at,
+        userID: data.id,
+      });
+
+      // Also update the localStorage user info
+      localStorage.setItem('user', JSON.stringify(data));
+
+      setMode("view");
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      alert(err.message || 'Failed to update profile.');
+    }
   }
 
   // Called when the user confirms logout in the modal
   function handleConfirmLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     logout();               // flip auth state in context
     setShowLogoutModal(false);
     navigate("/login");     // redirect back to login page
@@ -123,9 +191,28 @@ export default function Profile() {
 
   // Format account creation date to a friendly string (e.g. 1/17/2023)
   const createdDate = useMemo(
-    () => new Date(user.accountCreated).toLocaleDateString(),
-    [user.accountCreated]
+    () => user ? new Date(user.accountCreated).toLocaleDateString() : "",
+    [user]
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="profile-page">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="profile-page">
+        <p style={{ color: 'red'}}>{error || 'Failed to load profile'}</p>
+        <button onClick={() => navigate('/login')}>Back to Login</button>
+      </div>
+    );
+  }
 
   // ========================= RENDER =========================
   return (
