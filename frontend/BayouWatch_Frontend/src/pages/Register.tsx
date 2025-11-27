@@ -1,10 +1,15 @@
 import React, { useMemo } from "react";     // React and useMemo
-import { Link } from "react-router-dom";    // Navigation Links
+import { Link, useNavigate } from "react-router-dom";    // Navigation Links
 import { theme } from "../Theme";           // Theme for styling
 import { FaEnvelope, FaUser, FaLock } from "react-icons/fa"; // Icons for inputs
 
 // Local form state for registration forms
 export default function Register() {
+
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
+
   const [form, setForm] = React.useState({
     email: "",
     username: "",
@@ -45,12 +50,44 @@ export default function Register() {
 
   const hasErrors = Object.keys(errors).length > 0;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (hasErrors) return; // do nothing if invalid
-    // INTEGRATION WITH BACKEND LATER
-    console.log("Register attempt:", form);
+    if (hasErrors) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: form.email,
+          username: form.username,
+          password: form.password
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Registration failed');
+      }
+
+      // On successful registration, redirect to login page
+      alert('Account created successfully! Please login.');
+      navigate("/login");
+
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
+    
+  
 
   // Page rendering
   return (
@@ -59,6 +96,12 @@ export default function Register() {
         <h1 style={title}>Sign Up</h1>
         <div style={titleUnderline} />
         <p style={subtitle}>Create your BayouWatch account below</p>
+
+        {error && (
+          <div style={errorBanner}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={formStyle}>
           {/* Email */}
@@ -169,11 +212,11 @@ export default function Register() {
             disabled={hasErrors}
             style={{
               ...primaryButton,
-              opacity: hasErrors ? 0.7 : 1,
-              cursor: hasErrors ? "not-allowed" : "pointer",
+              opacity: hasErrors || loading? 0.7 : 1,
+              cursor: hasErrors || loading ? "not-allowed" : "pointer",
             }}
           >
-            Create Account
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
@@ -245,6 +288,17 @@ const label: React.CSSProperties = {
   gap: 6,
   fontSize: 14,
   color: theme.colors.text,
+};
+
+const errorBanner: React.CSSProperties = {
+  padding: theme.spacing.small,
+  marginBottom: theme.spacing.medium,
+  backgroundColor: '#fee',
+  border: '1px solid ' + theme.colors.danger,
+  borderRadius: theme.borderRadius.medium,
+  color: theme.colors.danger,
+  fontSize: 14,
+  textAlign: 'center',
 };
 
 // Outer container for icon + input, includes the error border.
