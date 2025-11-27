@@ -1,14 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FloodReportCard from "../components/FloodReportCard";
 import HistoryMap from "../components/HistoryMap";
 import type { HistoryMapReport } from "../components/HistoryMap";
-import "./FloodHistory.css"; // Page stylings
+import "./FloodHistory.css";
 
-// Defined severity types
 type Severity = "severe" | "moderate" | "minor";
 
-// Extended report type with additional fields
 interface FloodReport extends HistoryMapReport {
   reportedBy: string;
   date: string;
@@ -16,78 +14,79 @@ interface FloodReport extends HistoryMapReport {
   type: string;
 }
 
-// Mock flood reports data, to be replaced through database integration
-const mockReports: FloodReport[] = [
-  {
-    id: 1,
-    reportedBy: "Alice",
-    date: "2025-11-20",
-    location: "Choctaw Dr.",
-    type: "Street Flood",
-    severity: "severe",
-    description: "Heavily flooded streets after heavy rain",
-    latitude: 30.470875,
-    longitude: -91.131796,
-  },
-  {
-    id: 2,
-    reportedBy: "Bob",
-    date: "2025-11-20",
-    location: "Perkins Rd.",
-    type: "Localized Flood",
-    severity: "moderate",
-    description: "Moderate street flooding on busy roadway",
-    latitude: 30.420964,
-    longitude: -91.152794,
-  },
-  {
-    id: 3,
-    reportedBy: "Charlie",
-    date: "2025-11-24",
-    location: "Terrace Ave.",
-    type: "Water Near Curb",
-    severity: "minor",
-    description: "Water reaching the sidewalk but no road closure",
-    latitude: 30.436279,
-    longitude: -91.182348,
-  },
-  {
-    id: 4,
-    reportedBy: "Dana",
-    date: "2025-11-20",
-    location: "Nicholson Dr.",
-    type: "Road Closure",
-    severity: "severe",
-    description: "Major roads closed due to flooding",
-    latitude: 30.404385,
-    longitude: -91.183482,
-  },
-  {
-    id: 5,
-    reportedBy: "Eve",
-    date: "2025-11-23",
-    location: "E McKinley St.",
-    type: "Localized Flood",
-    severity: "moderate",
-    description: "Localized flooding near streets and residences",
-    latitude: 30.423661,
-    longitude: -91.175389,
-  },
-];
-
-// Main Flood History page component
 export default function FloodHistory() {
   const navigate = useNavigate();
-  const [selectedReport, setSelectedReport] = React.useState<FloodReport | null>(
-    null
-  );
+  const [selectedReport, setSelectedReport] = useState<FloodReport | null>(null);
+  const [reports, setReports] = useState<FloodReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch reports from backend
+  useEffect(() => {
+    fetch('http://localhost:8000/api/reports/')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch reports');
+        return res.json();
+      })
+      .then(data => {
+        // Transform backend data to FloodReport format
+        const transformedReports: FloodReport[] = data.reports.map((report: any) => ({
+          id: report.id,
+          reportedBy: `User ${report.user_id}`, // We don't have username in the response yet
+          date: new Date(report.created_at).toLocaleDateString(),
+          location: `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`, // For now, show coordinates
+          type: getFloodType(report.severity), // Helper function to determine type
+          severity: report.severity,
+          description: report.description || 'No description provided',
+          latitude: report.latitude,
+          longitude: report.longitude,
+        }));
+        
+        setReports(transformedReports);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching reports:', err);
+        setError('Failed to load flood reports');
+        setLoading(false);
+      });
+  }, []);
+
+  // Helper function to determine flood type based on severity
+  function getFloodType(severity: string): string {
+    switch (severity) {
+      case 'severe':
+        return 'Road Closure';
+      case 'moderate':
+        return 'Localized Flood';
+      case 'minor':
+        return 'Water Near Curb';
+      default:
+        return 'Flood Report';
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="history-container">
+        <p>Loading flood reports...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="history-container">
+        <p style={{ color: 'red' }}>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="history-container">
       {/* Title */}
       <div className="history-header">
         <h1 className="history-title">Flood History (Past 7 Days)</h1>
-
         <button
           className="history-report-button"
           onClick={() => navigate("/reporting")}
@@ -106,10 +105,10 @@ export default function FloodHistory() {
       <div className="history-grid">
         {/* Left column */}
         <div className="history-list">
-          {mockReports.length === 0 ? (
+          {reports.length === 0 ? (
             <p className="no-reports">No recent reports.</p>
           ) : (
-            mockReports.map((r) => (
+            reports.map((r) => (
               <div
                 key={r.id}
                 className="history-clickable-card"
