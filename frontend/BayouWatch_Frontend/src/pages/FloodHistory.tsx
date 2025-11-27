@@ -32,7 +32,7 @@ export default function FloodHistory() {
         // Transform backend data to FloodReport format
         const transformedReports: FloodReport[] = data.reports.map((report: any) => ({
           id: report.id,
-          reportedBy: `User ${report.user_id}`, // We don't have username in the response yet
+          reportedBy: report.username,
           date: new Date(report.created_at).toLocaleDateString(),
           location: `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`, // For now, show coordinates
           type: getFloodType(report.severity), // Helper function to determine type

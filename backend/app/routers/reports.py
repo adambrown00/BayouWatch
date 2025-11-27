@@ -26,6 +26,7 @@ def get_reports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
             {
                 "id": report.id,
                 "user_id": report.user_id,
+                "username": report.user.username,
                 "latitude": report.latitude,
                 "longitude": report.longitude,
                 "severity": report.severity.value,
