@@ -8,6 +8,7 @@ export const theme = {
     success: '#16a34a',      // success messages
     danger: '#dc2626',       // error or alert
     warning: '#facc15',      // warning or highlight
+    border: '#e2e8f0',       // border color for cards/dividers
   },
   spacing: {
     small: '8px',

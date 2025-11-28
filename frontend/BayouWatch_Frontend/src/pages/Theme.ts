@@ -8,7 +8,8 @@ export const theme = {
     text: '#1e293b',         // default text
     success: '#16a34a',      // success messages
     danger: '#dc2626',       // error or alert
-    warning: '#facc15',      // warning or highlight
+    warning: '#facc15',     // warnings
+    border: "#e5e7eb",     // borders and dividers
   },
   spacing: {
     small: '8px',
