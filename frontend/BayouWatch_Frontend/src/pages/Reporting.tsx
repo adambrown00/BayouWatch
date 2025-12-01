@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FaMapMarkerAlt, FaSearch, FaCamera, FaArrowLeft, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
-import { MdLocationOn } from 'react-icons/md';
+import {
+  FaMapMarkerAlt,
+  FaSearch,
+  FaCamera,
+  FaArrowLeft,
+  FaCheckCircle,
+  FaExclamationCircle,
+} from "react-icons/fa";
+import { MdLocationOn } from "react-icons/md";
 
 // Geocoding function using Nominatim (OpenStreetMap)
 async function addressToCoordinates(address: string) {
@@ -10,24 +17,28 @@ async function addressToCoordinates(address: string) {
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}, Baton Rouge, LA`
     );
     const data = await response.json();
-    
+
     if (data && data.length > 0) {
       return {
         latitude: parseFloat(data[0].lat),
         longitude: parseFloat(data[0].lon),
-        displayName: data[0].display_name
+        displayName: data[0].display_name,
       };
     }
-    throw new Error('Address not found. Please try a different address or be more specific.');
-  } catch (err) {
-    throw new Error('Failed to find address. Please check your internet connection.');
+    throw new Error(
+      "Address not found. Please try a different address or be more specific."
+    );
+  } catch {
+    throw new Error(
+      "Failed to find address. Please check your internet connection."
+    );
   }
 }
 
 export default function Reporting() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
+
   const [formData, setFormData] = useState({
     address: "",
     latitude: 0,
@@ -35,7 +46,7 @@ export default function Reporting() {
     severity: "minor",
     description: "",
   });
-  
+
   const [photo, setPhoto] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -45,42 +56,44 @@ export default function Reporting() {
 
   // Check if coordinates came from map click
   useEffect(() => {
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
-    
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+
     if (lat && lng) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
-      
-      setFormData(prev => ({
+
+      setFormData((prev) => ({
         ...prev,
         latitude: latitude,
-        longitude: longitude
+        longitude: longitude,
       }));
-      
-      setFoundAddress(`📍 Location selected from map: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+
+      setFoundAddress(
+        `📍 Location selected from map: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+      );
     }
   }, [searchParams]);
 
   const handleAddressLookup = async () => {
     if (!formData.address.trim()) {
-      setError('Please enter an address first');
+      setError("Please enter an address first");
       return;
     }
-    
+
     setGeocoding(true);
     setError(null);
-    
+
     try {
       const coords = await addressToCoordinates(formData.address);
       setFormData({
         ...formData,
         latitude: coords.latitude,
-        longitude: coords.longitude
+        longitude: coords.longitude,
       });
       setFoundAddress(coords.displayName);
     } catch (err: any) {
-      setError(err.message || 'Failed to find address');
+      setError(err.message || "Failed to find address");
     } finally {
       setGeocoding(false);
     }
@@ -92,46 +105,71 @@ export default function Reporting() {
     setError(null);
 
     // Get JWT token from localStorage
-    const token = localStorage.getItem('token');
-    
+    const token = localStorage.getItem("token");
+
     if (!token) {
-      setError('You must be logged in to submit a report. Please login first.');
+      setError("You must be logged in to submit a report. Please login first.");
       setSubmitting(false);
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => navigate("/login"), 2000);
       return;
     }
 
     // Basic validation
     if (!formData.latitude || !formData.longitude) {
-      setError('Please click on the map or use "Find Location" to set coordinates.');
+      setError(
+        'Please click on the map or use "Find Location" to set coordinates.'
+      );
       setSubmitting(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/reports/', {
-        method: 'POST',
+      let photoUrl = null;
+
+      // If photo is selected, upload it first
+      if (photo) {
+        const formDataForPhoto = new FormData();
+        formDataForPhoto.append("file", photo);
+
+        const uploadResponse = await fetch(
+          "http://localhost:8000/api/upload/upload-photo",
+          {
+            method: "POST",
+            body: formDataForPhoto,
+          }
+        );
+
+        if (!uploadResponse.ok) {
+          throw new Error("Photo upload failed");
+        }
+
+        const uploadData = await uploadResponse.json();
+        photoUrl = uploadData.photo_url;
+      }
+
+      const response = await fetch("http://localhost:8000/api/reports/", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           latitude: formData.latitude,
           longitude: formData.longitude,
           severity: formData.severity,
           description: formData.description,
-          photo_url: null
-        })
+          photo_url: photoUrl, // Submit photo url if uploaded
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to submit report');
+        throw new Error(errorData.detail || "Failed to submit report");
       }
 
       // Success!
       setSuccess(true);
-      
+
       // Clear form
       setFormData({
         address: "",
@@ -145,12 +183,12 @@ export default function Reporting() {
 
       // Redirect to history page after 2 seconds
       setTimeout(() => {
-        navigate('/flood-history');
+        navigate("/flood-history");
       }, 2000);
-
     } catch (err: any) {
-      console.error('Error submitting report:', err);
-      setError(err.message || 'Failed to submit report. Please try again.');
+      console.error("Error submitting report:", err);
+      console.error("Full error details:", err.message);
+      setError(err.message || "Failed to submit report. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -184,8 +222,11 @@ export default function Reporting() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Tip banner */}
         <div className="p-3 bg-blue-50 border border-blue-300 rounded flex items-center gap-2">
-          <MdLocationOn className="text-blue-600" size={20}/>
-          <p className="text-sm font-medium">Tip: Click on the map from the Home page to automatically set your location!</p>
+          <MdLocationOn className="text-blue-600" size={20} />
+          <p className="text-sm font-medium">
+            Tip: Click on the map from the Home page to automatically set your
+            location!
+          </p>
         </div>
 
         {/* Show if coordinates were set */}
@@ -199,19 +240,21 @@ export default function Reporting() {
         {/* Manual address option */}
         <div className="space-y-2">
           <label className="block font-medium">
-            {formData.latitude === 0 ? 'Location *' : 'Or Change Location (Optional)'}
+            {formData.latitude === 0
+              ? "Location *"
+              : "Or Change Location (Optional)"}
           </label>
           <p className="text-sm text-gray-600">
             Enter a street name, landmark, or area in Baton Rouge
           </p>
           <div className="flex gap-2">
-            <input 
-              className="p-2 border rounded w-full" 
+            <input
+              className="p-2 border rounded w-full"
               placeholder="e.g. Highland Road, LSU Campus, Downtown Baton Rouge"
               value={formData.address}
               onChange={(e) => {
-                setFormData({...formData, address: e.target.value});
-                if (foundAddress && foundAddress.includes('map')) {
+                setFormData({ ...formData, address: e.target.value });
+                if (foundAddress && foundAddress.includes("map")) {
                   setFoundAddress(null);
                 }
               }}
@@ -223,7 +266,7 @@ export default function Reporting() {
               className="px-4 py-2 bg-green-600 text-white rounded whitespace-nowrap hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               <FaSearch size={14} />
-              {geocoding ? 'Finding...' : 'Find Location'}
+              {geocoding ? "Finding..." : "Find Location"}
             </button>
           </div>
         </div>
@@ -232,31 +275,42 @@ export default function Reporting() {
         {formData.latitude !== 0 && formData.longitude !== 0 && (
           <div className="p-2 bg-gray-50 border border-gray-300 rounded text-sm text-gray-700 flex items-center gap-2">
             <FaMapMarkerAlt className="text-gray-600" />
-            Coordinates: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+            Coordinates: {formData.latitude.toFixed(4)},{" "}
+            {formData.longitude.toFixed(4)}
           </div>
         )}
 
         <div className="space-y-1">
           <label className="block font-medium">Flood Severity *</label>
-          <select 
+          <select
             className="p-2 border rounded w-full"
             value={formData.severity}
-            onChange={(e) => setFormData({...formData, severity: e.target.value})}
+            onChange={(e) =>
+              setFormData({ ...formData, severity: e.target.value })
+            }
           >
-            <option value="minor">Minor - Water on roads, passable with caution</option>
-            <option value="moderate">Moderate - Roads partially flooded, difficult to pass</option>
-            <option value="severe">Severe - Roads impassable, dangerous conditions</option>
+            <option value="minor">
+              Minor - Water on roads, passable with caution
+            </option>
+            <option value="moderate">
+              Moderate - Roads partially flooded, difficult to pass
+            </option>
+            <option value="severe">
+              Severe - Roads impassable, dangerous conditions
+            </option>
           </select>
         </div>
 
         <div className="space-y-1">
           <label className="block font-medium">Description</label>
-          <textarea 
-            className="p-2 border rounded w-full" 
-            rows={4} 
+          <textarea
+            className="p-2 border rounded w-full"
+            rows={4}
             placeholder="Describe the flooding situation (water depth, affected areas, road conditions, etc.)"
             value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
           />
         </div>
 
@@ -273,7 +327,9 @@ export default function Reporting() {
         >
           <FaCamera className="mx-auto mb-2 text-gray-400" size={32} />
           <p className="text-gray-600">
-            {photo ? `Selected: ${photo.name}` : "Drag & drop a photo here, or click to select (Optional)"}
+            {photo
+              ? `Selected: ${photo.name}`
+              : "Drag & drop a photo here, or click to select (Optional)"}
           </p>
           <p className="text-xs text-gray-500 mt-1">Photo upload coming soon</p>
           <input
@@ -285,17 +341,19 @@ export default function Reporting() {
           />
         </div>
 
-        <button 
+        <button
           type="submit"
-          disabled={submitting || (formData.latitude === 0 || formData.longitude === 0)}
+          disabled={
+            submitting || formData.latitude === 0 || formData.longitude === 0
+          }
           className="p-3 bg-blue-600 text-white rounded w-full font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {submitting ? 'Submitting Report...' : 'Submit Report'}
+          {submitting ? "Submitting Report..." : "Submit Report"}
         </button>
       </form>
 
-      <button 
-        onClick={() => navigate('/')}
+      <button
+        onClick={() => navigate("/")}
         className="p-2 border rounded w-full mt-4 hover:bg-gray-50 flex items-center justify-center gap-2"
       >
         <FaArrowLeft size={14} />

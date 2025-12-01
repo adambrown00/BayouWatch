@@ -9,6 +9,7 @@ interface FloodMarkerProps {
   longitude: number;
   severity: Severity;
   description: string;
+  photoUrl?: string;
 }
 
 const getColorBySeverity = (severity: Severity): string => {
@@ -46,13 +47,30 @@ const MapMarker: React.FC<FloodMarkerProps> = ({
   longitude,
   severity,
   description,
+  photoUrl,
 }) => {
   return (
     <Marker
       position={[latitude, longitude]}
       icon={createSeverityIcon(severity)}
     >
-      <Popup>{description}</Popup>
+      <Popup>
+        <div style={{ maxWidth: 240 }}>
+          <p style={{ marginBottom: 8 }}>{description}</p>
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt="Flood report photo"
+              style={{
+                width: "100%",
+                height: "auto",
+                borderRadius: 6,
+                border: "1px solid #ddd",
+              }}
+            />
+          )}
+        </div>
+      </Popup>
     </Marker>
   );
 };

@@ -21,6 +21,7 @@ interface PendingReport {
   longitude: number;
   severity: string;
   description: string;
+  photo_url?: string;
   created_at: string;
 }
 
@@ -214,6 +215,21 @@ export default function Admin() {
                     {report.description || "No description provided"}
                   </span>
                 </div>
+                {report.photo_url && (
+                  <div style={{ marginTop: 8 }}>
+                    <img
+                      src={report.photo_url}
+                      alt="Flood report photo"
+                      style={{
+                        maxWidth: 360,
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: 8,
+                        border: `1px solid ${theme.colors.border}`,
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
