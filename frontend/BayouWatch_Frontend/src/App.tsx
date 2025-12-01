@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Admin from "./pages/Admin";
 
 import { injectThemeCSSVars } from "./pages/Theme";
 
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
       </BrowserRouter>

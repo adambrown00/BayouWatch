@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     email: str
     username: str
     created_at: datetime
+    role: str
 
 # What the frontend sends when creating a flood report
 class FloodReportCreate(BaseModel):

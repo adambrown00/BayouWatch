@@ -52,7 +52,13 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "created_at": user.created_at,
+            "role": user.role
+        }
     }
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

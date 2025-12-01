@@ -115,4 +115,16 @@ def get_current_user(
     
     except (JWTError, ValueError, TypeError):
         raise credentials_exception
+    
+def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Verify that the current user is an admin.
+    Raises 403 forbidden error if not.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access is required.",
+        )
+    return current_user
                              

@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import Map from "../components/Map";
+import MapLegend from "../components/MapLegend";
 import { useNavigate } from "react-router-dom";
 import { theme } from "../Theme";
 
@@ -62,10 +63,10 @@ const Home: React.FC = () => {
         <div style={panel}>
           <h2 style={panelTitle}>Live Flood Activity Map</h2>
           <p style={panelSubtitle}>
-            Zoom and pan to explore reports around Baton Rouge. Markers are
-            color-coded by severity: Minor (green), Moderate (orange), Severe
-            (red).
+            Zoom and pan to explore reports around Baton Rouge. Click on the map
+            to create a new report for that location.
           </p>
+          <MapLegend />
           <div style={mapContainer}>
             <Map />
           </div>
