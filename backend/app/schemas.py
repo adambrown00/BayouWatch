@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from app.models import SeverityLevel, ReportStatus
 
 # What the frontend sends when logging in
@@ -21,6 +21,8 @@ class UserResponse(BaseModel):
     username: str
     created_at: datetime
     role: str
+    stats: Optional[dict] = None
+    recent_reports: Optional[List[dict]] = None
 
 # What the frontend sends when creating a flood report
 class FloodReportCreate(BaseModel):

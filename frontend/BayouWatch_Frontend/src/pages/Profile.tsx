@@ -21,29 +21,21 @@ interface User {
   email: string;
   accountCreated: string;
   userID: number;
+  stats?: {
+    total_reports: number;
+    severe_reports: number;
+    moderate_reports: number;
+    minor_reports: number;
+  };
+  recent_reports?: Array<{
+    id: number;
+    severity: string;
+    description: string;
+    created_at: string;
+    latitude: number;
+    longitude: number;
+  }>;
 }
-
-// Kept other user profile management mock data for now
-interface User {
-  username: string;
-  email: string;
-  accountCreated: string;
-  userID: number;
-}
-
-// Add these mock data objects here:
-const mockStats = {
-  totalReports: 7,
-  severeReports: 2,
-  moderateReports: 3,
-  minorReports: 2,
-};
-
-const mockRecentReports = [
-  { id: 1, date: "2025-11-20", location: "Choctaw Dr.", severity: "Severe" },
-  { id: 2, date: "2025-11-19", location: "Perkins Rd.", severity: "Moderate" },
-  { id: 3, date: "2025-11-18", location: "Nicholson Dr.", severity: "Minor" },
-];
 
 // Main Profile component
 export default function Profile() {
@@ -95,6 +87,8 @@ export default function Profile() {
         email: data.email,
         accountCreated: data.created_at,
         userID: data.id,
+        stats: data.stats,
+        recent_reports: data.recent_reports
       });
       setLoading(false);
     })
@@ -215,13 +209,24 @@ export default function Profile() {
   }
 
   // ========================= RENDER =========================
+
+  // In case the user has no data (should not happen)
+  if (!user) {
+    return (
+      <div className="profile-page">
+        <p>No user data available.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="profile-page">
       <h1 className="profile-title">Profile Management</h1>
 
       {/* friendly greeting under the title */}
       <p className="profile-subtitle">
-        Signed in as <span className="profile-username">{user.username}, Welcome!</span>
+        Signed in as{" "}
+        <span className="profile-username">{user.username}, Welcome!</span>
       </p>
 
       {/* Main two-column card: sidebar on the left, content panel on the right */}
@@ -344,9 +349,7 @@ export default function Profile() {
                         }
                       />
                       {errors.email && (
-                        <small className="profile-error">
-                          {errors.email}
-                        </small>
+                        <small className="profile-error">{errors.email}</small>
                       )}
                     </label>
                   </div>
@@ -384,25 +387,25 @@ export default function Profile() {
                 <div className="profile-stat-card">
                   <div className="profile-stat-label">Total Reports</div>
                   <div className="profile-stat-value">
-                    {mockStats.totalReports}
+                    {user?.stats?.total_reports || 0}
                   </div>
                 </div>
                 <div className="profile-stat-card">
                   <div className="profile-stat-label">Severe Floods</div>
                   <div className="profile-stat-value">
-                    {mockStats.severeReports}
+                    {user?.stats?.severe_reports || 0}
                   </div>
                 </div>
                 <div className="profile-stat-card">
                   <div className="profile-stat-label">Moderate Floods</div>
                   <div className="profile-stat-value">
-                    {mockStats.moderateReports}
+                    {user?.stats?.moderate_reports || 0}
                   </div>
                 </div>
                 <div className="profile-stat-card">
                   <div className="profile-stat-label">Minor Floods</div>
                   <div className="profile-stat-value">
-                    {mockStats.minorReports}
+                    {user?.stats?.minor_reports || 0}
                   </div>
                 </div>
               </div>
@@ -414,33 +417,45 @@ export default function Profile() {
             <div>
               <h2 className="profile-section-heading">Your Recent Reports</h2>
               <p className="profile-section-subtext">
-                These are a few of the latest flood reports associated with your
-                account.
+                These are your latest flood reports.
               </p>
 
-              <ul className="profile-list">
-                {mockRecentReports.map((r) => {
-                  // Normalize severity to match our CSS modifiers
-                  const severityKey = r.severity.toLowerCase(); // "severe" | "moderate" | "minor"
+              {!user?.recent_reports || user.recent_reports.length === 0 ? (
+                <p className="profile-section-subtext">
+                  No reports yet. Submit your first report!
+                </p>
+              ) : (
+                <ul className="profile-list">
+                  {user.recent_reports.map((r) => {
+                    // ← Use user.recent_reports, not mockRecentReports
+                    const severityKey = r.severity.toLowerCase();
 
-                  const severityClass =
-                    severityKey === "severe"
-                      ? "profile-list-severity profile-list-severity--severe"
-                      : severityKey === "moderate"
-                      ? "profile-list-severity profile-list-severity--moderate"
-                      : "profile-list-severity profile-list-severity--minor";
+                    const severityClass =
+                      severityKey === "severe"
+                        ? "profile-list-severity profile-list-severity--severe"
+                        : severityKey === "moderate"
+                          ? "profile-list-severity profile-list-severity--moderate"
+                          : "profile-list-severity profile-list-severity--minor";
 
-                  return (
-                    <li key={r.id} className="profile-list-item">
-                      <div className="profile-list-title">
-                        {r.location} &mdash;{" "}
-                        <span className={severityClass}>{r.severity}</span>
-                      </div>
-                      <div className="profile-list-meta">Reported on {r.date}</div>
-                    </li>
-                  );
-                })}
-              </ul>
+                    return (
+                      <li key={r.id} className="profile-list-item">
+                        <div className="profile-list-title">
+                          {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}{" "}
+                          &mdash;{" "}
+                          <span className={severityClass}>{r.severity}</span>
+                        </div>
+                        <div className="profile-list-meta">
+                          {r.description || "No description provided"}
+                        </div>
+                        <div className="profile-list-meta">
+                          Reported on{" "}
+                          {new Date(r.created_at).toLocaleDateString()}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           )}
 
