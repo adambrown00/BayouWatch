@@ -14,11 +14,11 @@ interface FloodMarkerProps {
 const getColorBySeverity = (severity: Severity): string => {
   switch (severity) {
     case "minor":
-      return "#22c55e"; // green
+      return "green"; // green
     case "moderate":
-      return "#fb923c"; // yellowish-orange
+      return "orange"; // yellowish-orange
     case "severe":
-      return "#ef4444"; // red
+      return "red"; // red
     default:
       return "gray";
   }
