@@ -4,16 +4,21 @@ from app.database import get_db
 from app.models import FloodReport, User, ReportStatus
 from app.schemas import FloodReportCreate, FloodReportResponse
 from app.auth import get_current_user, get_current_admin
+from datetime import datetime, timedelta
 
 # Create a router for report-related endpoints
 router = APIRouter()
 
 @router.get("/")
 def get_reports(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+
+    # Calculate date 7 days ago 
+    seven_days_ago = datetime.now() - timedelta(days=7)
     
-    # Get all approved flood reports from the database
+    # Get all approved flood reports from the database (last 7 days)
     reports = db.query(FloodReport)\
     .filter(FloodReport.status == "approved")\
+    .filter(FloodReport.created_at >= seven_days_ago)\
     .order_by(FloodReport.created_at.desc())\
     .offset(skip)\
     .limit(limit)\
