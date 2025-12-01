@@ -15,7 +15,6 @@ interface FloodReportCardProps {
   reportedBy: string;
   date: string;
   location: string;
-  type: string;
   severity: Severity;
   description: string;
 }
@@ -24,7 +23,6 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
   reportedBy,
   date,
   location,
-  type,
   severity,
   description,
 }) => {
@@ -58,11 +56,6 @@ const FloodReportCard: React.FC<FloodReportCardProps> = ({
         <FaMapMarkerAlt size={16} color="#007bff" />
         <span className="flood-label">Location:</span>
         <span>{location}</span>
-      </div>
-      <div className="flood-card-row">
-        <FaWater size={16} color="#007bff" />
-        <span className="flood-label">Type:</span>
-        <span>{type}</span>
       </div>
       <div className="flood-card-row">
         <FaExclamationTriangle size={16} color="#007bff" />

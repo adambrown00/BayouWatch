@@ -11,60 +11,48 @@ interface FloodReport extends HistoryMapReport {
   reportedBy: string;
   date: string;
   location: string;
-  type: string;
 }
 
 export default function FloodHistory() {
   const navigate = useNavigate();
-  const [selectedReport, setSelectedReport] = useState<FloodReport | null>(null);
+  const [selectedReport, setSelectedReport] = useState<FloodReport | null>(
+    null
+  );
   const [reports, setReports] = useState<FloodReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch reports from backend
   useEffect(() => {
-    fetch('http://localhost:8000/api/reports/')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch reports');
+    fetch("http://localhost:8000/api/reports/")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch reports");
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         // Transform backend data to FloodReport format
-        const transformedReports: FloodReport[] = data.reports.map((report: any) => ({
-          id: report.id,
-          reportedBy: report.username,
-          date: new Date(report.created_at).toLocaleDateString(),
-          location: `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`, // For now, show coordinates
-          type: getFloodType(report.severity), // Helper function to determine type
-          severity: report.severity,
-          description: report.description || 'No description provided',
-          latitude: report.latitude,
-          longitude: report.longitude,
-        }));
-        
+        const transformedReports: FloodReport[] = data.reports.map(
+          (report: any) => ({
+            id: report.id,
+            reportedBy: report.username,
+            date: new Date(report.created_at).toLocaleDateString(),
+            location: `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`, // For now, show coordinates
+            severity: report.severity,
+            description: report.description || "No description provided",
+            latitude: report.latitude,
+            longitude: report.longitude,
+          })
+        );
+
         setReports(transformedReports);
         setLoading(false);
       })
-      .catch(err => {
-        console.error('Error fetching reports:', err);
-        setError('Failed to load flood reports');
+      .catch((err) => {
+        console.error("Error fetching reports:", err);
+        setError("Failed to load flood reports");
         setLoading(false);
       });
   }, []);
-
-  // Helper function to determine flood type based on severity
-  function getFloodType(severity: string): string {
-    switch (severity) {
-      case 'severe':
-        return 'Road Closure';
-      case 'moderate':
-        return 'Localized Flood';
-      case 'minor':
-        return 'Water Near Curb';
-      default:
-        return 'Flood Report';
-    }
-  }
 
   if (loading) {
     return (
@@ -77,7 +65,7 @@ export default function FloodHistory() {
   if (error) {
     return (
       <div className="history-container">
-        <p style={{ color: 'red' }}>{error}</p>
+        <p style={{ color: "red" }}>{error}</p>
       </div>
     );
   }
@@ -118,7 +106,6 @@ export default function FloodHistory() {
                   reportedBy={r.reportedBy}
                   date={r.date}
                   location={r.location}
-                  type={r.type}
                   severity={r.severity as Severity}
                   description={r.description}
                 />
