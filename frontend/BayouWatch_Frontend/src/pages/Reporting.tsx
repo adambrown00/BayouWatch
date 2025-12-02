@@ -331,7 +331,6 @@ export default function Reporting() {
               ? `Selected: ${photo.name}`
               : "Drag & drop a photo here, or click to select (Optional)"}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Photo upload coming soon</p>
           <input
             id="photo-input"
             type="file"
