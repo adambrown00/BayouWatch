@@ -1,3 +1,4 @@
+# Adam Brown, Aaron Arceneaux, Johnny Williams, Jada Simantel, Roberto Pierre, Taya Dickens
 # BayouWatch 🌊
 
 A community-driven flood tracking and alert system designed to help residents monitor and report flooding conditions in real-time.
